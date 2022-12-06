@@ -1,0 +1,34 @@
+{
+  "name": "perdu-backend",
+  "version": "1.0.0",
+  "description": "Backend of a web application built with Nuxt.js to help find lost items",
+  "main": "app.js",
+  "author": "Craig Chick",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MRcraigchick/PERDU-backend.git"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "watch": "nodemon -e * app.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "chalk": "^5.0.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "date-fns": "^2.29.3",
+    "debug": "^4.3.4",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "mongoose": "^6.6.1",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.2.10",
+    "uid2": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
+}
