@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { validateReqBody } from '../lib/helpers.js';
+import { validateReqBody, firstToUpperCase } from '../lib/helpers.js';
 import Users from '../db/models/Users.js';
 const router = express.Router();
 
@@ -27,8 +27,8 @@ router.post('/signup', async (req, res) => {
     }
 
     await new Users({
-      firstName,
-      lastName,
+      firstName: firstToUpperCase(firstName),
+      lastName: firstToUpperCase(lastName),
       phone,
       email,
       password: await bcrypt.hash(password, 10),

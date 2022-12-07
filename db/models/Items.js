@@ -8,6 +8,7 @@ export default mongoose.model(
     locationInfo: Object,
     authentication: Object,
     isFound: { type: Boolean, default: false },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
     declared: Date,
   })
 );
