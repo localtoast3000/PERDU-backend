@@ -1,5 +1,11 @@
 import express from 'express';
-import { validateReqBody, isObject, firstToUpperCase, isNull } from '../lib/helpers.js';
+import {
+  validateReqBody,
+  isObject,
+  firstToUpperCase,
+  isNull,
+  validateId,
+} from '../lib/helpers.js';
 import Items from '../db/models/Items.js';
 import Users from '../db/models/Users.js';
 const router = express.Router();
@@ -87,7 +93,59 @@ router.post('/add', async (req, res) => {
   }
 });
 
-router.put('/updatestatus', async (req, res) => {
+router.delete('/remove', async (req, res) => {
+  if (
+    !validateReqBody({
+      body: req.body,
+      expectedProperties: ['token', 'id'],
+    })
+  )
+    res.json({ result: false, error: 'Invalid token or item data' });
+  else {
+    const { token, id } = req.body;
+    const user = await Users.findOne({ token });
+
+    if (!user) {
+      res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!validateId(id)) {
+      res.json({ result: false, error: 'ID is invalid' });
+      return;
+    }
+
+    const item = await Items.findById(id);
+
+    if (!item) {
+      res.json({
+        result: false,
+        error: 'Item not found',
+      });
+      return;
+    }
+
+    if (String(item.userId) !== String(user._id)) {
+      res.json({ result: false, error: 'User unauthorized to remove item' });
+      return;
+    }
+
+    try {
+      user.userItems = user.userItems.filter((item_id) => String(item_id) !== id);
+      await user.save();
+      await item.remove();
+    } catch {
+      res.json({ result: false, error: 'Failed to add item to user' });
+      return;
+    }
+
+    res.json({
+      result: true,
+    });
+  }
+});
+
+router.put('/update-status', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
@@ -101,6 +159,11 @@ router.put('/updatestatus', async (req, res) => {
 
     if (!user) {
       res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!validateId(id)) {
+      res.json({ result: false, error: 'ID is invalid' });
       return;
     }
 
@@ -138,7 +201,7 @@ router.put('/updatestatus', async (req, res) => {
   }
 });
 
-router.put('/updatedetails', async (req, res) => {
+router.put('/update-details', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
@@ -152,6 +215,11 @@ router.put('/updatedetails', async (req, res) => {
 
     if (!user) {
       res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!validateId(id)) {
+      res.json({ result: false, error: 'ID is invalid' });
       return;
     }
 
@@ -193,7 +261,7 @@ router.put('/updatedetails', async (req, res) => {
   }
 });
 
-router.put('/updatelocationinfo', async (req, res) => {
+router.put('/update-locationinfo', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
@@ -208,6 +276,11 @@ router.put('/updatelocationinfo', async (req, res) => {
 
     if (!user) {
       res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!validateId(id)) {
+      res.json({ result: false, error: 'ID is invalid' });
       return;
     }
 
@@ -244,6 +317,70 @@ router.put('/updatelocationinfo', async (req, res) => {
       item.save();
     } catch {
       res.json({ result: false, error: 'Failed to update items locationInfo field' });
+      return;
+    }
+    res.json({
+      result: true,
+    });
+  }
+});
+
+router.put('/update-authentication', async (req, res) => {
+  if (
+    !validateReqBody({
+      body: req.body,
+      expectedProperties: ['token', 'id', 'authentication'],
+    })
+  )
+    res.json({ result: false, error: 'Invalid token or data' });
+  else {
+    const { token, id, authentication } = req.body;
+
+    const user = await Users.findOne({ token });
+
+    if (!user) {
+      res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!validateId(id)) {
+      res.json({ result: false, error: 'ID is invalid' });
+      return;
+    }
+
+    if (!isObject(authentication)) {
+      res.json({
+        result: false,
+        error: 'authentication must be an object with properties',
+      });
+      return;
+    }
+
+    if (Object.values(authentication).some((val) => isNull(val))) {
+      res.json({ result: false, error: 'No null values in authentication' });
+      return;
+    }
+
+    const item = await Items.findById(id);
+
+    if (!item) {
+      res.json({
+        result: false,
+        error: 'Item not found',
+      });
+      return;
+    }
+
+    if (String(item.userId) !== String(user._id)) {
+      res.json({ result: false, error: 'User unauthorized to edit item' });
+      return;
+    }
+
+    try {
+      item.authentication = authentication;
+      item.save();
+    } catch {
+      res.json({ result: false, error: 'Failed to update items authentication field' });
       return;
     }
     res.json({
