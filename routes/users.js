@@ -8,7 +8,7 @@ router.post('/signup', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: [
+      expectedProperties: [
         'firstName',
         'lastName',
         'phone',
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: ['email', 'password'],
+      expectedProperties: ['email', 'password'],
     })
   )
     res.json({ result: false, error: 'Invalid login data' });

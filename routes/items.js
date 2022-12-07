@@ -8,7 +8,7 @@ router.post('/', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: ['token'],
+      expectedProperties: ['token'],
     })
   )
     res.json({ result: false, error: 'Invalid token' });
@@ -34,7 +34,7 @@ router.post('/add', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: [
+      expectedProperties: [
         'token',
         'category',
         'details',
@@ -91,7 +91,7 @@ router.put('/updatestatus', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: ['token', 'id', 'isFound'],
+      expectedProperties: ['token', 'id', 'isFound'],
     })
   )
     res.json({ result: false, error: 'Invalid token or data' });
@@ -142,7 +142,7 @@ router.put('/updatedetails', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedPropertys: ['token', 'id', 'details'],
+      expectedProperties: ['token', 'id', 'details'],
     })
   )
     res.json({ result: false, error: 'Invalid token or data' });
@@ -156,7 +156,7 @@ router.put('/updatedetails', async (req, res) => {
     }
 
     if (!isObject(details)) {
-      res.json({ result: false, error: 'details must be an object with propertys' });
+      res.json({ result: false, error: 'details must be an object with properties' });
       return;
     }
 
@@ -187,10 +187,69 @@ router.put('/updatedetails', async (req, res) => {
       res.json({ result: false, error: 'Failed to update items details field' });
       return;
     }
+    res.json({
+      result: true,
+    });
   }
-  res.json({
-    result: true,
-  });
+});
+
+router.put('/updatelocationinfo', async (req, res) => {
+  if (
+    !validateReqBody({
+      body: req.body,
+      expectedProperties: ['token', 'id', 'locationInfo'],
+    })
+  )
+    res.json({ result: false, error: 'Invalid token or data' });
+  else {
+    const { token, id, locationInfo } = req.body;
+
+    const user = await Users.findOne({ token });
+
+    if (!user) {
+      res.json({ result: false, error: 'Invalid token' });
+      return;
+    }
+
+    if (!isObject(locationInfo)) {
+      res.json({
+        result: false,
+        error: 'locationInfo must be an object with properties',
+      });
+      return;
+    }
+
+    if (Object.values(locationInfo).some((val) => isNull(val))) {
+      res.json({ result: false, error: 'No null values in locationInfo' });
+      return;
+    }
+
+    const item = await Items.findById(id);
+
+    if (!item) {
+      res.json({
+        result: false,
+        error: 'Item not found',
+      });
+      return;
+    }
+
+    if (String(item.userId) !== String(user._id)) {
+      res.json({ result: false, error: 'User unauthorized to edit item' });
+      return;
+    }
+
+    try {
+      item.locationInfo = locationInfo;
+      item.save();
+    } catch {
+      res.json({ result: false, error: 'Failed to update items locationInfo field' });
+      return;
+    }
+    res.json({
+      result: true,
+    });
+  }
 });
 
 export default router;
