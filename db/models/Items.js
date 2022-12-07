@@ -7,7 +7,7 @@ export default mongoose.model(
     details: Object,
     locationInfo: Object,
     authentication: Object,
-    isFound: Boolean,
+    isFound: { type: Boolean, default: false },
     declared: Date,
   })
 );

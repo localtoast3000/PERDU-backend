@@ -14,6 +14,7 @@ import connectToDatbase from './db/mongo_db_connector.js';
 
 // ROUTER IMPORTS
 import usersRouter from './routes/users.js';
+import itemsRouter from './routes/items.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || '3000';
@@ -33,6 +34,7 @@ app.use(express.static(STATIC));
 
 // ROUTERS MIDDLEWARE
 app.use('/users', usersRouter);
+app.use('/items', itemsRouter);
 
 // PORT LISTENER
 app.listen(PORT, () => {
