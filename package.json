@@ -1,7 +1,7 @@
 {
   "name": "perdu-backend",
   "version": "1.0.0",
-  "description": "Backend of a web application built with Nuxt.js to help find lost items",
+  "description": "Backend of PERDU built with Express.js, PERDU is a web application to help find lost items",
   "main": "app.js",
   "author": "Craig Chick",
   "license": "MIT",
