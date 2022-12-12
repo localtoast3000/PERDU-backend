@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { validateReqBody, firstToUpperCase } from '../lib/helpers.js';
+import { validateReqBody, firstToUpperCase, clientSafeItems } from '../lib/helpers.js';
 import Users from '../db/models/Users.js';
 const router = express.Router();
 
@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
       return;
     }
 
-    if (user.userItems.length > 0) await user.populate('userItems');
+    await user.populate('userItems');
 
     res.json({
       result: true,
@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         phone: user.phone,
-        items: user.userItems,
+        items: clientSafeItems(user),
       },
     });
   }

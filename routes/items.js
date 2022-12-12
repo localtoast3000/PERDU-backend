@@ -151,23 +151,33 @@ router.delete('/remove', async (req, res) => {
       return;
     }
 
+    await user.populate('userItems');
+
     res.json({
       result: true,
-      user: clientSafeItems(user),
+      user: {
+        token: user.token,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        items: clientSafeItems(user),
+      },
     });
   }
 });
 
-router.put('/update-status', async (req, res) => {
+router.put('/update', async (req, res) => {
   if (
     !validateReqBody({
       body: req.body,
-      expectedProperties: ['token', 'id', 'isFound'],
+      expectedProperties: ['token', 'id', 'address', 'details', 'declared', 'isFound'],
+      allowNull: true,
     })
   )
     res.json({ result: false, error: 'Invalid token or data' });
   else {
-    const { token, id, isFound } = req.body;
+    const { token, id, address, details, declared, isFound } = req.body;
     const user = await Users.findOne({ token });
 
     if (!user) {
@@ -201,203 +211,29 @@ router.put('/update-status', async (req, res) => {
     }
 
     try {
+      item.address = address;
+      item.declared = declared;
+      item.details = details;
       item.isFound = isFound;
-      item.save();
+      await item.save();
+      await user.save();
     } catch {
       res.json({ result: false, error: 'Failed to update items isFound field' });
       return;
     }
 
+    await user.populate('userItems');
+
     res.json({
       result: true,
-    });
-  }
-});
-
-router.put('/update-details', async (req, res) => {
-  if (
-    !validateReqBody({
-      body: req.body,
-      expectedProperties: ['token', 'id', 'details'],
-    })
-  )
-    res.json({ result: false, error: 'Invalid token or data' });
-  else {
-    const { token, id, details } = req.body;
-    const user = await Users.findOne({ token });
-
-    if (!user) {
-      res.json({ result: false, error: 'Invalid token' });
-      return;
-    }
-
-    if (!validateId(id)) {
-      res.json({ result: false, error: 'ID is invalid' });
-      return;
-    }
-
-    if (!isObject(details)) {
-      res.json({ result: false, error: 'details must be an object with properties' });
-      return;
-    }
-
-    if (Object.values(details).some((val) => isNull(val))) {
-      res.json({ result: false, error: 'No null values in details' });
-      return;
-    }
-
-    const item = await Items.findById(id);
-
-    if (!item) {
-      res.json({
-        result: false,
-        error: 'Item not found',
-      });
-      return;
-    }
-
-    if (String(item.userId) !== String(user._id)) {
-      res.json({ result: false, error: 'User unauthorized to edit item' });
-      return;
-    }
-
-    try {
-      item.details = details;
-      item.save();
-    } catch {
-      res.json({ result: false, error: 'Failed to update items details field' });
-      return;
-    }
-    res.json({
-      result: true,
-    });
-  }
-});
-
-router.put('/update-locationinfo', async (req, res) => {
-  if (
-    !validateReqBody({
-      body: req.body,
-      expectedProperties: ['token', 'id', 'locationInfo'],
-    })
-  )
-    res.json({ result: false, error: 'Invalid token or data' });
-  else {
-    const { token, id, locationInfo } = req.body;
-
-    const user = await Users.findOne({ token });
-
-    if (!user) {
-      res.json({ result: false, error: 'Invalid token' });
-      return;
-    }
-
-    if (!validateId(id)) {
-      res.json({ result: false, error: 'ID is invalid' });
-      return;
-    }
-
-    if (!isObject(locationInfo)) {
-      res.json({
-        result: false,
-        error: 'locationInfo must be an object with properties',
-      });
-      return;
-    }
-
-    if (Object.values(locationInfo).some((val) => isNull(val))) {
-      res.json({ result: false, error: 'No null values in locationInfo' });
-      return;
-    }
-
-    const item = await Items.findById(id);
-
-    if (!item) {
-      res.json({
-        result: false,
-        error: 'Item not found',
-      });
-      return;
-    }
-
-    if (String(item.userId) !== String(user._id)) {
-      res.json({ result: false, error: 'User unauthorized to edit item' });
-      return;
-    }
-
-    try {
-      item.locationInfo = locationInfo;
-      item.save();
-    } catch {
-      res.json({ result: false, error: 'Failed to update items locationInfo field' });
-      return;
-    }
-    res.json({
-      result: true,
-    });
-  }
-});
-
-router.put('/update-authentication', async (req, res) => {
-  if (
-    !validateReqBody({
-      body: req.body,
-      expectedProperties: ['token', 'id', 'authentication'],
-    })
-  )
-    res.json({ result: false, error: 'Invalid token or data' });
-  else {
-    const { token, id, authentication } = req.body;
-
-    const user = await Users.findOne({ token });
-
-    if (!user) {
-      res.json({ result: false, error: 'Invalid token' });
-      return;
-    }
-
-    if (!validateId(id)) {
-      res.json({ result: false, error: 'ID is invalid' });
-      return;
-    }
-
-    if (!isObject(authentication)) {
-      res.json({
-        result: false,
-        error: 'authentication must be an object with properties',
-      });
-      return;
-    }
-
-    if (Object.values(authentication).some((val) => isNull(val))) {
-      res.json({ result: false, error: 'No null values in authentication' });
-      return;
-    }
-
-    const item = await Items.findById(id);
-
-    if (!item) {
-      res.json({
-        result: false,
-        error: 'Item not found',
-      });
-      return;
-    }
-
-    if (String(item.userId) !== String(user._id)) {
-      res.json({ result: false, error: 'User unauthorized to edit item' });
-      return;
-    }
-
-    try {
-      item.authentication = authentication;
-      item.save();
-    } catch {
-      res.json({ result: false, error: 'Failed to update items authentication field' });
-      return;
-    }
-    res.json({
-      result: true,
+      user: {
+        token: user.token,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        items: clientSafeItems(user),
+      },
     });
   }
 });
