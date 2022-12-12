@@ -5,7 +5,6 @@ import Users from '../db/models/Users.js';
 const router = express.Router();
 
 router.post('/signup', async (req, res) => {
-  console.log(req.body);
   if (
     !validateReqBody({
       body: req.body,
