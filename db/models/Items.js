@@ -5,7 +5,7 @@ export default mongoose.model(
   mongoose.Schema({
     category: String,
     details: Object,
-    locationInfo: Object,
+    address: String,
     authentication: Object,
     isFound: { type: Boolean, default: false },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },

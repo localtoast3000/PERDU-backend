@@ -5,6 +5,7 @@ import {
   firstToUpperCase,
   isNull,
   validateId,
+  clientSafeItems,
 } from '../lib/helpers.js';
 import Items from '../db/models/Items.js';
 import Users from '../db/models/Users.js';
@@ -37,23 +38,24 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/add', async (req, res) => {
+  console.log(req.body);
   if (
     !validateReqBody({
       body: req.body,
       expectedProperties: [
         'token',
         'category',
+        'address',
         'details',
-        'locationInfo',
         'authentication',
         'declared',
       ],
+      allowNull: true,
     })
   )
     res.json({ result: false, error: 'Invalid token or item data' });
   else {
-    const { token, category, details, locationInfo, authentication, isFound, declared } =
-      req.body;
+    const { token, category, address, details, authentication, declared } = req.body;
     const user = await Users.findOne({ token });
 
     if (!user) {
@@ -72,7 +74,7 @@ router.post('/add', async (req, res) => {
     const item = new Items({
       category: firstToUpperCase(category),
       details: isObject(details) ? details : null,
-      locationInfo: isObject(locationInfo) ? locationInfo : null,
+      address: !isNull(address) ? address : null,
       authentication: isObject(authentication) ? authentication : null,
       userId: user._id,
       declared,
@@ -87,8 +89,18 @@ router.post('/add', async (req, res) => {
       return;
     }
 
+    await user.populate('userItems');
+
     res.json({
       result: true,
+      user: {
+        token: user.token,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        items: clientSafeItems(user),
+      },
     });
   }
 });
@@ -141,6 +153,7 @@ router.delete('/remove', async (req, res) => {
 
     res.json({
       result: true,
+      user: clientSafeItems(user),
     });
   }
 });
